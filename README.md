@@ -14,7 +14,7 @@
 
 ### To Run Angular Bootstrap And SASS Practice Application
 
-- go to the directory Vidly: add command to the command line : cd Vidly
+- go to the directory BootStrapAndSassPractice: add command to the command line : cd BootStrapAndSassPractice
 
 ### Install Dependencies
 
