@@ -1,0 +1,16 @@
+ul, ol{
+    text-align: center;
+    & &{
+        padding{
+                bottom: 20px;
+                left: 20px;
+        }
+    }
+}
+$radius: 3px !default;
+
+@mixin rounded {
+  //border-radius: $-radius; private with dash(-)
+  //border-radius: $_radius; private with underscore(_)
+  border-radius: $radius; //public
+}

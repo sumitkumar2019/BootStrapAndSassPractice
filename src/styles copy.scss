@@ -1,0 +1,397 @@
+@use 'sass:map';
+@use 'sass:selector';
+@use 'sass:meta';
+@use './scss-modules/code';//no need to use ./path for relative imports : see below @use
+@use '/scss-modules/lists' as lst with($radius:5px); //configured values will override the variables’ default values.
+@use '/scss-modules/global' as *;//leave (_) underscore when use partials: partials not compile by saas compiler
+//normal property declaration
+
+.class1{
+    $size:20px; //local value
+    width: $size;
+    height: $size;
+    border-radius: $size/2;
+}
+//global variable: as a good practice declare in _global.scss file ;
+//default values in variable
+.default-variable-check{
+    $m:80px;
+    padding: $m;
+}
+//global values in variable
+.global-variable-check{
+    $m:70px;
+    padding: $m;
+}
+.variable-test1{
+    padding: $m;
+}
+.variable-test2{
+    $m:75px; //local value supersade global value
+    padding: $m;
+}
+//variable shadowing
+.shadowing{
+    $s:20px;
+    padding:$s;
+}
+.shadow{
+    padding: $s;
+}
+//flow control scope variable
+@if $dark-theme{
+    $primary_color_1:darken(blue, 60%);
+    $primary_color_2:darken(green, 60%);
+    $primary_color_3:darken(red, 60%);
+}
+
+//Advance variable functions using built in map module
+$theme-colors:(    
+    "success":green,
+    "fail":red,
+    "warning":yellow,
+);
+.map-check{
+    background-color: map.get($theme-colors,"success");
+}
+
+//interpolation symbol: #{$x}
+/**
+    Mixins allow you to define styles that can be re-used throughout your stylesheet
+**/
+@mixin test($x, $y:grayscale(50%)/*default value*/, $z) {
+    @each $Z in $z {
+        -#{$Z}-#{$x}:$y;
+    }
+    #{$x}:$y;
+}
+.gray{
+    @include test(filter,grayscale(20%),moz webkit);
+}
+//Nesting
+.class2{
+    font-size: 10px;
+    transition: {
+        property: font-size;
+        duration: 4s;
+        delay: 2s;
+    }
+    //hidden variables
+    border-radius: if($rounded-corners, 5px, null); 
+    //parent selector(&)
+    &:hover{ 
+        font-size: 36px;
+    }
+    [dir=rtl] & {
+        margin-left: 20px;
+        margin-right: 10px;
+    }
+    :not(&){
+        opacity: 0.8;
+    }
+    //adding suffixes in parent selector(&)
+    &_copy{
+        background-color: green;
+    }
+    &_open{
+        background-color: blue;
+    }
+    //use parent selector(&) in sass script 
+    @mixin app-background($color){
+        #{&,'&.app-background','.app-background'}{
+            background-color: green;
+            color: black;
+        }
+    }
+    @include app-background(#036);
+    .sidebar{
+        @include app-background(#056);
+    }
+    //advance nesting using selector module and parent selector(&)
+    @mixin unify-parent($child){
+        @at-root #{selector.unify(&,$child)}{
+            //content block:a mixin can take an entire block of styles, known as a content block.
+            @content; 
+        }
+    }
+    .wrapper .field{
+        @include unify-parent("input"){
+            background-color: green; //placed at @content
+        }
+        @include unify-parent("select"){
+            padding: 20px;//placed at @content
+        }
+    }
+    
+}
+//using css variables with sass
+:root{
+    --primary-color-1:#{$primary_color_1};
+    --primary-color-2:#{$primary_color_2};
+    --primary-color-3:#{$primary_color_3};  
+    --font-family-sans-serif: #{meta.inspect($font-family-sans-serif)};
+    --font-family-monospace: #{meta.inspect($font-family-monospace)};  
+}
+.class3{
+    background-color: var(--primary-color-1);
+    color: var(--primary-color-2);
+    border-color: var(--primary-color-3);
+}
+//placeholder selector(%) not emitted in css , only extended
+%testplaceholder{
+    border: 1px solid red;
+    padding: 10px;
+    font-size: 12px;
+    &:hover{
+        border: 5px dashed green;
+        padding:30px;
+        font-size: 22px;
+    }
+}
+.class5{
+    @extend %testplaceholder;
+    color:black;
+}
+.class6{
+    @extend %testplaceholder;
+    color: white;
+}
+//Interpolation : Example 1
+@mixin corner-icon ($name, $top-to-bottom, $left-to-right){
+    .icon-#{$name}{
+        background-color: red;
+        position: absolute;
+        #{$top-to-bottom}:0;
+        #{$left-to-right}:0;
+    }
+}
+@include corner-icon("mail", top, left);
+//Interpolation: in saas script: Example 2
+@mixin inline-animation($duration) {
+    $name:inline-#{unique-id()};
+    @keyframes #{$name} {
+        @content;
+    }
+    animation-name: $name;
+    animation-duration: $duration;
+    animation-iteration-count: infinite;
+}
+.pulse{
+    @include inline-animation(2s){
+        from{
+            background-color: yellow;
+        }
+        to{
+            background-color: green;
+        }
+    }
+}
+.button1{
+    @include lst.rounded;
+    padding:5*lst.$radius;
+}
+.class7{
+    //import is deprecated and soon removed: don't use instead use more @use
+    @import "./scss-modules/theme"; //nested import relative path . dot required ./path
+}
+@mixin order($height, $selectors.../*arbitrary arguments*/) {
+    @for $i from 0 to length($selectors) {
+      #{nth($selectors, $i + 1)} {
+        position: absolute;
+        height: $height;
+        margin-top: $i * $height;
+      }
+    }
+  }
+  
+  @include order(150px, "input.name", "input.address", "input.zip");
+  
+  /*Taking Arbitrary Keyword Arguments*/
+  @mixin syntax-colors($args...) {
+    @each $name, $color in /*keywords : use meta method*/meta.keywords($args) {
+      pre span.stx-#{$name} {
+        color: $color;
+      }
+    }
+  }
+  
+  @include syntax-colors(
+    $string: #080,
+    $comment: #800,
+    $variable: #60b,
+  );
+  
+  //Functions: @function: Functions allow you to define complex operations on SassScript values that you can re-use throughout your stylesheet. 
+  @function testfunction($x, $y){
+    $result:1;
+    @for $z from 1 through $x{
+        $result:$y*$result;
+    }
+    @return $result;
+  }
+  .sidebar2{
+      float: left;
+      margin-left: testfunction(3, 4)*1px;
+  }
+  //arbitrary arguments
+  @function sum($numbers...) {
+    $sum: 0;
+    @each $number in $numbers {
+      $sum: $sum + $number;
+    }
+    @return $sum;
+  }
+  
+  .class8{
+      padding: sum(20, 30, 40)px;
+  }
+
+$widths: 50px, 30px, 100px;
+.class9 {
+  width: min($widths...);
+}
+.error:hover {
+    background-color: #fee;
+  }
+.error{
+    background-color: blue;
+    color: red;
+    &--serious{
+        @extend .error;
+        border: 1px solid black;
+    }
+}
+//custom errors
+@mixin reflexive-position($property, $value) {
+    @if $property != left and $property != right {
+      @error "Property #{$property} must be either left or right.";
+    }
+  
+    $left-value: if($property == right, initial, $value);
+    $right-value: if($property == right, $value, initial);
+  
+    left: $left-value;
+    right: $right-value;
+    [dir=rtl] & {
+      left: $right-value;
+      right: $left-value;
+    }
+  }
+  
+  .sidebar {
+    @include reflexive-position(left, 12px);
+    //@include reflexive-position(top, 12px);
+    //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // Error: Property top must be either left or right.
+  }
+  
+  $known-prefixes: webkit, moz, ms, o;
+//custom warnings
+@mixin prefix($property, $value, $prefixes) {
+  @each $prefix in $prefixes {
+    @if not index($known-prefixes, $prefix) {
+      @warn "Unknown prefix #{$prefix}.";
+    }
+
+    -#{$prefix}-#{$property}: $value;
+  }
+  #{$property}: $value;
+}
+
+.tilt {
+  // Oops, we typo'd "webkit" as "wekbit"!
+  @include prefix(transform, rotate(15deg), wekbit ms);
+}
+
+//debug information: not work in angular
+@mixin inset-divider-offset($offset, $padding) {
+    $divider-offset: (2 * $padding) + $offset;
+    @debug "divider offset: #{$divider-offset}";
+  
+    margin-left: $divider-offset;
+    width: calc(100% - #{$divider-offset});
+  }
+  
+  //control flow: @if @else @else if
+  @mixin triangle($size, $color, $direction) {
+    height: 0;
+    width: 0;
+  
+    border-color: transparent;
+    border-style: solid;
+    border-width: $size / 2;
+  
+    @if $direction == up {
+      border-bottom-color: $color;
+    } @else if $direction == right {
+      border-left-color: $color;
+    } @else if $direction == down {
+      border-top-color: $color;
+    } @else if $direction == left {
+      border-right-color: $color;
+    } @else {
+      @error "Unknown direction #{$direction}.";
+    }
+  }
+  
+  .next {
+    @include triangle(5px, black, right);
+  }
+  
+  //control flow: @each with list
+  $sizes: 40px, 50px, 80px;
+
+@each $size in $sizes {
+  .icon-#{$size} {
+    font-size: $size;
+    height: $size;
+    width: $size;
+  }
+}
+
+//control flow: @each with map
+$icons: ("eye": "\f112", "start": "\f12e", "stop": "\f12f");
+
+@each $name, $glyph in $icons {
+  .icon-#{$name}:before {
+    display: inline-block;
+    font-family: "Icon Font";
+    content: $glyph;
+  }
+}
+
+//control flow: @each : destructuring
+$icons:
+  "eye" "\f112" 12px,
+  "start" "\f12e" 16px,
+  "stop" "\f12f" 10px;
+
+@each $name, $glyph, $size in $icons {
+  .icon-#{$name}:before {
+    display: inline-block;
+    font-family: "Icon Font";
+    content: $glyph;
+    font-size: $size;
+  }
+}
+//control flow: @for
+$base-color: #036;
+
+@for $i from 1 through 3 {
+  ul:nth-child(3n + #{$i}) {
+    background-color: lighten($base-color, $i * 5%);
+  }
+}
+//control flow: @while
+@function scale-below($value, $base, $ratio: 1.618) {
+    @while $value > $base {
+      $value: $value / $ratio;
+    }
+    @return $value;
+  }
+  
+  $normal-font-size: 16px;
+  sup {
+    font-size: scale-below(20px, 16px);
+  }
+  

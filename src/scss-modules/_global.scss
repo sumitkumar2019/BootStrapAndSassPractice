@@ -1,0 +1,18 @@
+/* Define standard variables and values for website : underscore and hyphen are same $x-y & $x_y are one variable names*/
+//global variables
+$dark-theme:null;
+$s: 50px;
+$m:80px !default;
+$size:20px;
+$bgcolor:skyblue;
+$textcolor:red;
+$fontsize:22px;
+$primary_color_1:green;
+$primary_color_2:blue;
+$primary_color_3:brown;
+$sizes:40px, 50px, 80x;
+$icons:("eye":"\f112", "start":"\f12e", "stop":"\f12f");
+$icons-des: "eyes" "\f112" 12px, "starts" "\f12e" 16px, "stops" "\f12f" 10px;
+$rounded-corners:false;
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+$font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas;
